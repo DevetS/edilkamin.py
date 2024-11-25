@@ -52,11 +52,9 @@ def discover_devices_helper(
     """
     matching_devices = filter(lambda device: device["name"] == "EDILKAMIN_EP", devices)
     matching_devices = map(
-        lambda device: (
-            bluetooth_mac_to_wifi_mac(device["address"])
-            if convert
-            else device["address"]
-        ),
+        lambda device: bluetooth_mac_to_wifi_mac(device["address"])
+        if convert
+        else device["address"],
         matching_devices,
     )
     return tuple(matching_devices)
@@ -91,7 +89,7 @@ def device_info(token: str, mac: str) -> typing.Dict:
     headers = get_headers(token)
     mac = format_mac(mac)
     url = get_endpoint(f"device/{mac}/info")
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=15)
     response.raise_for_status()
     return response.json()
 
@@ -104,7 +102,7 @@ def mqtt_command(token: str, mac_address: str, payload: typing.Dict) -> str:
     headers = get_headers(token)
     url = get_endpoint("mqtt/command")
     data = {"mac_address": format_mac(mac_address), **payload}
-    response = requests.put(url, json=data, headers=headers)
+    response = requests.put(url, json=data, headers=headers, timeout=15)
     response.raise_for_status()
     return response.json()
 
@@ -241,7 +239,7 @@ def set_fan_speed(token: str, mac_address: str, fan_id: int, speed: int) -> str:
 
 def device_info_get_airkare(info: typing.Dict) -> bool:
     """Get airkare status from cached info."""
-    return info["status"]["flags"]["is_airkare_active"]
+    return info["status"]["commands"]["airkare_function"]
 
 
 def get_airkare(token: str, mac_address: str) -> bool:
@@ -262,7 +260,7 @@ def set_airkare(token: str, mac_address: str, airkare: bool) -> str:
 
 def device_info_get_relax_mode(info: typing.Dict) -> bool:
     """Get relax mode status from cached info."""
-    return info["status"]["flags"]["is_relax_active"]
+    return info["nvm"]["user_parameters"]["is_relax_active"]
 
 
 def get_relax_mode(token: str, mac_address: str) -> bool:
@@ -326,66 +324,3 @@ def set_standby_mode(token: str, mac_address: str, standby_mode: bool) -> str:
     return mqtt_command(
         token, mac_address, {"name": "standby_mode", "value": standby_mode}
     )
-
-
-def device_info_get_chrono_mode(info: typing.Dict) -> bool:
-    """Get chrono mode status from cached info."""
-    return info["status"]["flags"]["is_crono_active"]
-
-
-def get_chrono_mode(token: str, mac_address: str) -> bool:
-    """Get chrono mode status."""
-    info = device_info(token, mac_address)
-    return device_info_get_chrono_mode(info)
-
-
-def set_chrono_mode(token: str, mac_address: str, chrono_mode: bool) -> str:
-    """
-    Set chrono mode.
-    Return response string e.g. "Command 0123456789abcdef executed successfully".
-    """
-    return mqtt_command(
-        token, mac_address, {"name": "chrono_mode", "value": chrono_mode}
-    )
-
-
-def device_info_get_easy_timer(info: typing.Dict) -> int:
-    """Get easy timer value from cached info."""
-    easy_time_status = info["status"]["flags"]["is_easytimer_active"]
-    return info["status"]["easytimer"]["time"] if easy_time_status else 0
-
-
-def get_easy_timer(token: str, mac_address: str) -> int:
-    """Get easy timer value, return 0 if disabled."""
-    info = device_info(token, mac_address)
-    return device_info_get_easy_timer(info)
-
-
-def set_easy_timer(token: str, mac_address: str, easy_timer: int) -> str:
-    """
-    Set easy timer value.
-    Return response string e.g. "Command 0123456789abcdef executed successfully".
-    """
-    return mqtt_command(token, mac_address, {"name": "easytimer", "value": easy_timer})
-
-
-def device_info_get_autonomy_time(info: typing.Dict) -> int:
-    """Get autonomy time from cached info."""
-    return info["status"]["pellet"]["autonomy_time"]
-
-
-def get_autonomy_time(token: str, mac_address: str) -> int:
-    """Get autonomy time."""
-    info = device_info(token, mac_address)
-    return device_info_get_autonomy_time(info)
-
-
-def device_info_get_pellet_reserve(info: typing.Dict) -> bool:
-    """Get pellet reserve status from cached info."""
-    return info["status"]["flags"]["is_pellet_in_reserve"]
-
-
-def get_pellet_reserve(token: str, mac_address: str) -> bool:
-    """Get pellet reserve status."""
-    info = device_info(token, mac_address)
-    return device_info_get_pellet_reserve(info)

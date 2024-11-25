@@ -3,7 +3,7 @@ import sys
 
 from setuptools import setup
 
-REQUIRED_PYTHON = (3, 8)
+REQUIRED_PYTHON = (3, 7)
 
 
 def assert_python_version(version_info):
@@ -21,7 +21,7 @@ def read(fname):
 # exposing the params so it can be imported
 setup_params = {
     "name": "edilkamin",
-    "version": "1.4.1",
+    "version": "1.2.0",
     "description": "Edilkamin Stove Python client",
     "long_description": read("README.md"),
     "long_description_content_type": "text/markdown",
@@ -39,19 +39,17 @@ setup_params = {
             "coveralls",
             "flake8",
             "isort",
-            "pytest",
-            "pytest-cov",
-            "tox",
-            "twine",
-            "wheel",
-        ],
-        "doc": [
             # fixes readthedocs build, refs:
             # https://github.com/readthedocs/readthedocs.org/issues/9038
             "Jinja2<3.1",
             "m2r2",
+            "pytest",
+            "pytest-cov",
             "Sphinx",
             "sphinx-rtd-theme",
+            "tox",
+            "twine",
+            "wheel",
         ],
     },
 }
